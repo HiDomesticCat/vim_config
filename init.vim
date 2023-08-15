@@ -1,13 +1,25 @@
-lua require('plugins')
-
-filetype plugin indent on
-
 call plug#begin()
+	Plug 'folke/tokyonight.nvim', { 'branch': 'main' }
+	Plug 'rcarriga/nvim-notify'
 
-Plug 'folke/tokyonight.nvim', { 'branch': 'main' }
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'rcarriga/nvim-notify'
-
+	Plug 'neovim/nvim-lspconfig'
+	Plug 'williamboman/mason.nvim'
+	Plug 'williamboman/mason-lspconfig.nvim'
+	
+	Plug 'simrat39/rust-tools.nvim'
+	
+	Plug 'hrsh7th/cmp-nvim-lsp'
+  	Plug 'hrsh7th/cmp-buffer'
+  	Plug 'hrsh7th/cmp-path'
+  	Plug 'hrsh7th/cmp-cmdline'
+  	Plug 'hrsh7th/nvim-cmp'
+  	Plug 'hrsh7th/cmp-vsnip'
+  	Plug 'hrsh7th/vim-vsnip'
+  	Plug 'rafamadriz/friendly-snippets'
+  	Plug 'onsails/lspkind-nvim'
+  	
+  	Plug 'nvim-tree/nvim-web-devicons'
+	
 call plug#end()
 
 " 顯示列號
@@ -37,6 +49,7 @@ colorscheme tokyonight-night
 
 " 字體更改
 set guifont=Consolas:h15
+set guifont=Cousine_Nerd_Font_Mono:h12
 
 " 太長的更新間隔會導致明顯的延遲並降低使用者體驗（預設是 4000 ms = 4s ）
 set updatetime=300
@@ -49,46 +62,67 @@ else
   set signcolumn=yes
 endif
 
-" 用 tab 鍵觸發自動補全
-" 注意：載入設定後記得用命令 `verbose imap <tab>` 確定這沒有被其他外掛覆蓋掉
-"inoremap <silent><expr> <TAB>
-"	\ pumvisible() ? "\<C-n>" :
-"	\ <SID>check_back_space() ? "\<TAB>" :
-"	\ coc#refresh()
-"inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+lua << EOF
 
-function! s:check_back_space() abort
-	let col = col('.') - 1
-	return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
+require("mason").setup()
+require("mason-lspconfig").setup()
+require("lsp/setup")
+require("lsp/cmp")
+require("keybindings")
 
-" 這個讓你可以捲動浮動視窗和跳出式框框（有時候自動補全給你的文件會太長超出螢幕，如果你想要看下面的內容必須設定這個）
-if has('nvim-0.4.0') || has('patch-8.2.0750')
-  nnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
-  nnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
-  inoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(1)\<cr>" : "\<Right>"
-  inoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(0)\<cr>" : "\<Left>"
-  vnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
-  vnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
-endif
+require'nvim-web-devicons'.setup {
+ -- your personnal icons can go here (to override)
+ -- you can specify color or cterm_color instead of specifying both of them
+ -- DevIcon will be appended to `name`
+ override = {
+  zsh = {
+    icon = "",
+    color = "#428850",
+    cterm_color = "65",
+    name = "Zsh"
+  }
+ };
+ -- globally enable different highlight colors per icon (default to true)
+ -- if set to false all icons will have the default icon's color
+ color_icons = true;
+ -- globally enable default icons (default to false)
+ -- will get overriden by `get_icons` option
+ default = true;
+ -- globally enable "strict" selection of icons - icon will be looked up in
+ -- different tables, first by filename, and if not found by extension; this
+ -- prevents cases when file doesn't have any extension but still gets some icon
+ -- because its name happened to match some extension (default to false)
+ strict = true;
+ -- same as `override` but specifically for overrides by filename
+ -- takes effect when `strict` is true
+ override_by_filename = {
+  [".gitignore"] = {
+    icon = "",
+    color = "#f1502f",
+    name = "Gitignore"
+  }
+ };
+ -- same as `override` but specifically for overrides by extension
+ -- takes effect when `strict` is true
+ override_by_extension = {
+  ["log"] = {
+    icon = "",
+    color = "#81e043",
+    name = "Log"
+  }
+ };
+}
+require'nvim-web-devicons'.get_icon(filename, extension, { default = true })
+
+local rt = require("rust-tools")
+rt.setup({
+	server = {
+		on_attach = function(_, bufnr)
+			require'kerbindings'.rt_key(rt, bufnr)
+		end,
+	},
+})
+
+EOF
 
 autocmd BufNew,BufRead *.asm set ft=nasm
-
-" GoTo code navigation.
-nmap <silent> gd <Plug>(coc-definition)
-nmap <silent> gy <Plug>(coc-type-definition)
-nmap <silent> gi <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
-
-" Use K to show documentation in preview window.
-nnoremap <silent> K :call <SID>show_documentation()<CR>
-
-function! s:show_documentation()
-  if (index(['vim','help'], &filetype) >= 0)
-    execute 'h '.expand('<cword>')
-  elseif (coc#rpc#ready())
-    call CocActionAsync('doHover')
-  else
-    execute '!' . &keywordprg . " " . expand('<cword>')
-  endif
-endfunction
