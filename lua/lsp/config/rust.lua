@@ -1,3 +1,4 @@
+local configs = require 'lsp/configs'
 local util = require 'lsp/util'
 
 local function reload_workspace(bufnr)

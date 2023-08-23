@@ -1,3 +1,4 @@
+local configs = require 'lsp/configs'
 local util = require 'lsp/util'
 
 -- https://clangd.llvm.org/extensions.html#switch-between-sourceheader

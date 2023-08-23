@@ -54,6 +54,9 @@ set guifont=Cousine_Nerd_Font_Mono:h12
 " 太長的更新間隔會導致明顯的延遲並降低使用者體驗（預設是 4000 ms = 4s ）
 set updatetime=300
 
+" 共用系統剪貼簿
+set clipboard=unnamed
+
 " 永遠顯示 signcolumn（行號左邊那個，這我不知道怎麼翻），否則每當有診斷出來時整個程式碼就會被往右移
 if has("nvim-0.5.0") || has("patch-8.1.1564")
   " 新的版本可以把 signcolumn 和行號合併（這個我版本不夠沒看過，有人知道會長怎樣可以下面留言嗎？）
